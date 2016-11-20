@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+>
+<h:head>
+    <title>Редактирование книг</title>
+</h:head>
+<h:body>
+
+    <h:form id="form">
+        <p:growl id="msgs" showDetail="true"/>
+
+        <p:dataTable id="books" var="b" value="#{book.books}"
+                     editable="true" style="margin-bottom:20px" rows="10"
+                     paginator="true"
+                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     rowsPerPageTemplate="5,10,15">
+            <p:ajax event="rowEdit" listener="#{book.updateBook}" update=":form:msgs"/>
+            <p:ajax event="rowEditCancel" listener="#{book.onRowCancel}" update=":form:msgs"/>
+            <f:facet name="header">
+                Редактирование книг
+            </f:facet>
+
+
+            <p:column headerText="Название" sortBy="#{b.name}">
+                <p:cellEditor>
+                    <f:facet name="output"><h:outputText value="#{b.name}"/></f:facet>
+                    <f:facet name="input"><p:inputText value="#{b.name}" style="width:100%"/></f:facet>
+                </p:cellEditor>
+            </p:column>
+
+            <p:column headerText="Автор" sortBy="#{b.author.name}">
+                <p:cellEditor>
+                    <f:facet name="output"><h:outputText value="#{b.author.name}"/></f:facet>
+                    <f:facet name="input">
+                        <h:selectOneMenu value="#{b.author}" style="width:100%"
+                                         converter="omnifaces.SelectItemsConverter">
+                            <f:selectItems value="#{author.authorList}" var="a" itemLabel="#{a.name}" itemValue="#{a}"/>
+                        </h:selectOneMenu>
+                    </f:facet>
+                </p:cellEditor>
+            </p:column>
+
+            <p:column headerText="Жанр" sortBy="#{b.genre.name}">
+                <p:cellEditor>
+                    <f:facet name="output"><h:outputText value="#{b.genre.name}"/></f:facet>
+                    <f:facet name="input">
+                        <h:selectOneMenu value="#{b.genre}" style="width:100%"
+                                         converter="omnifaces.SelectItemsConverter">
+                            <f:selectItems value="#{genre.genreList}" var="g" itemLabel="#{g.name}" itemValue="#{g}"/>
+                        </h:selectOneMenu>
+                    </f:facet>
+                </p:cellEditor>
+            </p:column>
+
+            <p:column headerText="Описание">
+                <p:cellEditor>
+                    <f:facet name="output"><h:outputText value="#{b.description}"/></f:facet>
+                    <f:facet name="input"><p:inputText value="#{b.description}" style="width:100%"/></f:facet>
+                </p:cellEditor>
+            </p:column>
+
+            <p:column style="width:32px">
+                <p:rowEditor/>
+            </p:column>
+
+            <p:column style="width:40px">
+                <f:facet name="header"/>
+                <p:commandButton icon="ui-icon-trash" actionListener="#{book.deleteBook(b)}" update="form:msgs,books">
+                </p:commandButton>
+            </p:column>
+        </p:dataTable>
+
+        <p:panel id="maincreatepanel" header="Создать" toggleable="true" toggleSpeed="500" collapsed="true">
+
+            <p:panelGrid id="create" columns="3" layout="grid">
+                <p:panelGrid id="createbook" columns="2" layout="grid">
+                    <p:outputLabel for="name" value="Название: "/>
+                    <p:inputText id="name" value="#{book.newBook.name}" style="width: 200px"/>
+
+                    <p:outputLabel for="selectauthor" value="Автор: "/>
+                    <h:selectOneMenu id="selectauthor" value="#{book.newBook.author.id}" style="width: 210px">
+                        <f:selectItem itemLabel="Выберите автора" itemValue=""/>
+                        <f:selectItems value="#{author.getAuthorList()}" var="a" itemLabel="#{a.name}"
+                                       itemValue="#{a.id}"/>
+                    </h:selectOneMenu>
+
+                    <p:outputLabel for="selectgenre" value="Жанр: "/>
+                    <h:selectOneMenu id="selectgenre" value="#{book.newBook.genre.id}" style="width: 210px">
+                        <f:selectItem itemLabel="Выберите жанр" itemValue=""/>
+                        <f:selectItems value="#{genre.getGenreList()}" var="g" itemLabel="#{g.name}"
+                                       itemValue="#{g.id}"/>
+                    </h:selectOneMenu>
+
+                    <p:outputLabel for="desc" value="Описание книги: "/>
+                    <p:inputTextarea id="desc" value="#{book.newBook.description}" cols="20" rows="10"
+                                     style="width: 200px"/>
+                    <p:commandButton value="Создать новую книгу" actionListener="#{book.createBook}"
+                                     update="form:msgs,form:books"/>
+                </p:panelGrid>
+
+                <p:panelGrid id="createauthor" columns="2" layout="grid">
+                    <p:outputLabel for="authorname" value="Имя автора: "/>
+                    <p:inputText id="authorname" value="#{author.newAuthor.name}" style="width: 200px"/>
+
+                    <p:commandButton value="Создать нового автора" actionListener="#{author.createAuthor}"
+                                     update="msgs,selectauthor"/>
+                </p:panelGrid>
+
+                <p:panelGrid id="creategenre" columns="2" layout="grid">
+                    <p:outputLabel for="genrename" value="Жанр: "/>
+                    <p:inputText id="genrename" value="#{genre.newGenre.name}" style="width: 200px"/>
+
+                    <p:commandButton value="Создать новый жанр" actionListener="#{genre.createGenre}"
+                                     update="msgs,selectgenre">
+                        <p:resetInput target="@this"/>
+                    </p:commandButton>
+                </p:panelGrid>
+            </p:panelGrid>
+
+        </p:panel>
+    </h:form>
+</h:body>
+</html>
